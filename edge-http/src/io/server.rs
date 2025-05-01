@@ -11,7 +11,7 @@ use embassy_sync::mutex::Mutex;
 
 use embedded_io_async::{ErrorType, Read, Write};
 
-use log::{debug, info, warn};
+use log::{debug, info, trace, warn};
 
 use super::{send_headers, send_status, Body, Error, RequestHeaders, SendBody};
 
@@ -468,7 +468,7 @@ pub async fn handle_connection<H, T, const N: usize>(
     T: Read + Write + Readable + TcpSplit + TcpShutdown,
 {
     let close = loop {
-        debug!("Handler task {task_id}: Waiting for a new request");
+        trace!("Handler task {task_id}: Waiting for a new request");
 
         if let Some(keepalive_timeout_ms) = keepalive_timeout_ms {
             let wait_data = with_timeout(keepalive_timeout_ms, io.readable()).await;
@@ -498,10 +498,10 @@ pub async fn handle_connection<H, T, const N: usize>(
             }
             Ok(needs_close) => {
                 if needs_close {
-                    debug!("Handler task {task_id}: Request complete; closing connection");
+                    trace!("Handler task {task_id}: Request complete; closing connection");
                     break true;
                 } else {
-                    debug!("Handler task {task_id}: Request complete");
+                    trace!("Handler task {task_id}: Request complete");
                 }
             }
         }
@@ -676,7 +676,7 @@ impl<const P: usize, const B: usize, const N: usize> Server<P, B, N> {
             tasks
                 .push(async move {
                     loop {
-                        debug!("Handler task {task_id}: Waiting for connection");
+                        trace!("Handler task {task_id}: Waiting for connection");
 
                         let io = {
                             let _guard = mutex.lock().await;
@@ -684,7 +684,7 @@ impl<const P: usize, const B: usize, const N: usize> Server<P, B, N> {
                             acceptor.accept().await.map_err(Error::Io)?.1
                         };
 
-                        debug!("Handler task {task_id}: Got connection request");
+                        trace!("Handler task {task_id}: Got connection request");
 
                         handle_connection::<_, _, N>(
                             io,

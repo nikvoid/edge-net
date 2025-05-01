@@ -6,7 +6,7 @@ use core::fmt::{self, Display};
 use core::str;
 
 use httparse::{Header, EMPTY_HEADER};
-use log::{debug, warn};
+use log::{debug, trace, warn};
 use ws::{is_upgrade_accepted, is_upgrade_request, MAX_BASE64_KEY_RESPONSE_LEN, NONCE_LEN};
 
 pub const DEFAULT_MAX_HEADERS_COUNT: usize = 64;
@@ -619,7 +619,7 @@ impl BodyType {
                         // With HTTP1.1 we can safely upgrade the body to a chunked one
                         Ok(BodyType::Chunked)
                     } else {
-                        debug!("Unknown body type in a request. Assuming Content-Length=0.");
+                        trace!("Unknown body type in a request. Assuming Content-Length=0.");
                         Ok(BodyType::ContentLen(0))
                     }
                 } else if matches!(connection_type, ConnectionType::Close) {
